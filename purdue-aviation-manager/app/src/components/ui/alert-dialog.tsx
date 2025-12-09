@@ -155,3 +155,5 @@ export {
   AlertDialogAction,
   AlertDialogCancel,
 };
+
+export default AlertDialog;

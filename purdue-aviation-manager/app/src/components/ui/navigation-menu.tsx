@@ -166,3 +166,5 @@ export {
   NavigationMenuViewport,
   navigationMenuTriggerStyle,
 };
+
+export default NavigationMenu;

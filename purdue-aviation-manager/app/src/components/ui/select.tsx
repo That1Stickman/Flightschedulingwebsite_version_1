@@ -187,3 +187,5 @@ export {
   SelectTrigger,
   SelectValue,
 };
+
+export default Select;

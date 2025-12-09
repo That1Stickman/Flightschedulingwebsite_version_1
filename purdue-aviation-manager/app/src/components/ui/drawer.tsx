@@ -130,3 +130,5 @@ export {
   DrawerTitle,
   DrawerDescription,
 };
+
+export default Drawer;

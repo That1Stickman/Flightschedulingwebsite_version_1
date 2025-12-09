@@ -195,8 +195,8 @@ export function ScheduleDialog({
 
   // Filter aircraft and instructors based on the active filter
   const displayedAircraft = filteredAircraftIds.length > 0
-    ? aircraft.filter(a => a.available && filteredAircraftIds.includes(a.registration))
-    : aircraft.filter(a => a.available);
+    ? aircraft.filter(a => a.status === 'available' && filteredAircraftIds.includes(a.registration))
+    : aircraft.filter(a => a.status === 'available');
 
   const displayedInstructors = filteredInstructorIds.length > 0
     ? instructors.filter(i => i.available && filteredInstructorIds.includes(i.id))

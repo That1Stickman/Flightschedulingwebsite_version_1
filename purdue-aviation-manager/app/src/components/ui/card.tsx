@@ -90,3 +90,5 @@ export {
   CardDescription,
   CardContent,
 };
+
+export default Card;

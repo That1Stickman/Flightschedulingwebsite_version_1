@@ -31,3 +31,5 @@ function CollapsibleContent({
 }
 
 export { Collapsible, CollapsibleTrigger, CollapsibleContent };
+
+export default Collapsible;

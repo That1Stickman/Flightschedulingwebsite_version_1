@@ -1,15 +1,9 @@
-import { Text, View } from "react-native";
+import { Platform } from "react-native";
+import AppNative from "./src/App.native";
+import AppWeb from "./src/App";
 
+// Pick platform-appropriate root to avoid web DOM components loading in native bundles.
 export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
+
+  return <AppNative />;
 }

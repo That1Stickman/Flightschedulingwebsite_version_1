@@ -136,3 +136,5 @@ export {
   DialogTitle,
   DialogTrigger,
 };
+
+export default Dialog;

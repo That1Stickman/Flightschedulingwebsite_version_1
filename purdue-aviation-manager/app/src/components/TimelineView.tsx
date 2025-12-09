@@ -367,7 +367,33 @@ export function TimelineView({ selectedDate, flights, aircraft, instructors, onT
                     onMouseDown={(e) => !isTimeSlotInPast(hourSlot) && handleMouseDown(hourSlot, e)}
                     onMouseEnter={() => !isTimeSlotInPast(hourSlot) && handleMouseEnter(hourSlot)}
                     onClick={hourInSelectedRange && !isTimeSlotInPast(hourSlot) ? handleSelectedRangeClick : undefined}
-                    className={`w-full text-left px-4 py-2 transition-all flex items-center justify-between group h-8 ${\n                      isTimeSlotInPast(hourSlot)\n                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'\n                        : hourInSelectedRange\n                          ? 'bg-blue-100 border-l-2 border-blue-500 cursor-pointer'\n                          : hourInDragRange \n                            ? 'bg-amber-50 border-l-2 border-amber-400 cursor-pointer' \n                            : 'hover:bg-slate-50 cursor-pointer'\n                    }`}\n                  >\n                    <span className={`text-sm font-medium ${\n                      isTimeSlotInPast(hourSlot) ? 'text-slate-400' : 'text-slate-700'\n                    }`}>\n                      {formatTime(hourSlot)}\n                    </span>\n                    {!isTimeSlotInPast(hourSlot) && hourIsFirstInSelectedRange && (\n                      <span className="text-sm text-blue-700 font-medium flex items-center gap-1">\n                        <MousePointerClick className="w-4 h-4" />\n                        Click to schedule\n                      </span>\n                    )}\n                    {!isTimeSlotInPast(hourSlot) && !hourInSelectedRange && !hourInDragRange && (\n                      <span className="text-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">\n                        Click to schedule →\n                      </span>\n                    )}\n                  </div>
+                    className={`w-full text-left px-4 py-2 transition-all flex items-center justify-between group h-8 ${
+                      isTimeSlotInPast(hourSlot)
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                        : hourInSelectedRange
+                          ? 'bg-blue-100 border-l-2 border-blue-500 cursor-pointer'
+                          : hourInDragRange 
+                            ? 'bg-amber-50 border-l-2 border-amber-400 cursor-pointer' 
+                            : 'hover:bg-slate-50 cursor-pointer'
+                    }`}
+                  >
+                    <span className={`text-sm font-medium ${
+                      isTimeSlotInPast(hourSlot) ? 'text-slate-400' : 'text-slate-700'
+                    }`}>
+                      {formatTime(hourSlot)}
+                    </span>
+                    {!isTimeSlotInPast(hourSlot) && hourIsFirstInSelectedRange && (
+                      <span className="text-sm text-blue-700 font-medium flex items-center gap-1">
+                        <MousePointerClick className="w-4 h-4" />
+                        Click to schedule
+                      </span>
+                    )}
+                    {!isTimeSlotInPast(hourSlot) && !hourInSelectedRange && !hourInDragRange && (
+                      <span className="text-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                        Click to schedule →
+                      </span>
+                    )}
+                  </div>
                 ) : null}
               </div>
 
@@ -571,7 +597,7 @@ export function TimelineView({ selectedDate, flights, aircraft, instructors, onT
                             </span>
                           )}
                         </div>
-                        {index < hourMarkers.length && !halfHourFlight && (
+                        {index < hourMarkers.length && (
                           halfHourIsStart && halfHourFlight ? (
                             <div className="relative">
                               <div
@@ -731,7 +757,7 @@ export function TimelineView({ selectedDate, flights, aircraft, instructors, onT
                             </span>
                           )}
                         </div>
-                        {index < hourMarkers.length && !halfHourFlight && (
+                        {index < hourMarkers.length && (
                           halfHourIsStart && halfHourFlight ? (
                             <div className="relative">
                               <div

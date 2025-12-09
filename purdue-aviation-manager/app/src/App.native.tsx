@@ -1,19 +1,9 @@
-import { useState } from 'react';
-import { Calendar } from './components/ui/calendar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
-import { Button } from './components/ui/button';
-import { Badge } from './components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
-import { ScheduleDialog } from './components/ScheduleDialog';
-import { FlightList } from './components/FlightList';
-import { AircraftGrid } from './components/AircraftGrid';
-import { InstructorGrid } from './components/InstructorGrid';
-import { BookingInterface } from './components/BookingInterface';
-import { MasterSchedule } from './components/MasterSchedule';
-import { ImageWithFallback } from './components/figma/ImageWithFallback';
-import { Plane, Calendar as CalendarIcon, Users, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
-import logo from './assets/PurdueAviationLogo.png';
+// @ts-nocheck
+import React, { useMemo, useState } from "react";
+import { SafeAreaView, ScrollView, StyleSheet, View, Text } from "react-native";
+import { FlightList } from "./components/FlightList.native";
+import { TimelineView } from "./components/TimelineView.native";
+import { ScheduleDialog } from "./components/ScheduleDialog.native";
 
 export interface Flight {
   id: string;
@@ -23,12 +13,27 @@ export interface Flight {
   aircraft: string;
   instructor: string;
   student: string;
-  type: 'dual' | 'solo' | 'checkride' | 'spin' | 'photo' | 'meeting' | 'maintenance' | 'ground';
-  status: 'scheduled' | 'completed' | 'cancelled';
+  type: "dual" | "solo" | "checkride" | "spin" | "photo" | "meeting" | "maintenance" | "ground";
+  status: "scheduled" | "completed" | "cancelled";
   hobbsTime?: number;
   cancelReason?: string;
   cancelComments?: string;
-  flightCategory?: 'standard' | 'unavailable' | 'spin-training' | 'photo-flight' | 'new-student' | 'meeting' | 'maintenance' | 'in-office' | 'h6-operations' | 'groundschool' | 'ground-instruction' | 'aircraft-checkout' | 'down-time' | 'checkride-category' | 'bfr';
+  flightCategory?:
+    | "standard"
+    | "unavailable"
+    | "spin-training"
+    | "photo-flight"
+    | "new-student"
+    | "meeting"
+    | "maintenance"
+    | "in-office"
+    | "h6-operations"
+    | "groundschool"
+    | "ground-instruction"
+    | "aircraft-checkout"
+    | "down-time"
+    | "checkride-category"
+    | "bfr";
 }
 
 export interface Aircraft {
@@ -36,7 +41,7 @@ export interface Aircraft {
   name: string;
   type: string;
   registration: string;
-  status: 'available' | 'maintenance' | 'unavailable';
+  status: "available" | "maintenance" | "unavailable";
   hobbsTime?: number;
 }
 
@@ -51,9 +56,45 @@ export interface Instructor {
   authorizedAircraft?: string[];
 }
 
-// Mock data
+const mockFlights: Flight[] = [
+  {
+    id: "f1",
+    date: new Date(),
+    startTime: "09:00",
+    endTime: "11:00",
+    aircraft: "N172PA",
+    instructor: "Justin Marvin",
+    student: "Alex",
+    type: "dual",
+    status: "scheduled",
+  },
+  {
+    id: "f2",
+    date: new Date(Date.now() - 1000 * 60 * 60 * 24),
+    startTime: "13:00",
+    endTime: "14:30",
+    aircraft: "N63366",
+    instructor: "Ciara Hoyt",
+    student: "Casey",
+    type: "solo",
+    status: "completed",
+    hobbsTime: 1.4,
+  },
+  {
+    id: "f3",
+    date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2),
+    startTime: "08:30",
+    endTime: "10:00",
+    aircraft: "N51204",
+    instructor: "Rocco Thomas",
+    student: "Taylor",
+    type: "checkride",
+    status: "scheduled",
+  },
+];
+
 const mockAircraft: Aircraft[] = [
-  { id: '1', registration: 'N94286', type: 'Cessna 152', name: 'Cessna 152', status: 'available' },
+{ id: '1', registration: 'N94286', type: 'Cessna 152', name: 'Cessna 152', status: 'available' },
   { id: '2', registration: 'N51204', type: 'Cessna 172P', name: 'Skyhawk', status: 'available' },
   { id: '3', registration: 'N63366', type: 'Cessna 172P', name: 'Skyhawk', status: 'available' },
   { id: '4', registration: 'N5331D', type: 'Cessna 172N', name: 'Cessna 172N', status: 'available' },
@@ -408,231 +449,241 @@ const mockInstructors: Instructor[] = [
     email: 'lw.ryan.leung@gmail.com',
     trainingCapabilities: ['Discovery Flight', 'Photo Flights', 'Private Pilot', 'Commercial Pilot', 'Complex Endorsements', 'High-Performance Endorsements', 'Biennial Flight Reviews (BFR)', 'G1000/G1000NXI Checkouts'],
     authorizedAircraft: ['N94286', 'N51204', 'N63366', 'N5331D', 'N5724J', 'N6665G', 'N73719', 'N35063', 'N651PA', 'N652PA', 'N653PA', 'N654PA', 'N665CS', 'N422LS', 'N2884L', 'N560PU', 'N273ND', 'N6605F', 'N767PA', 'N3033T-PPI', 'N4347G-PPI', 'Conf Rm AD', 'Conf Rm 2']
-  },
+  }
 ];
 
-const mockFlights: Flight[] = [];
-
 export default function App() {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [flights, setFlights] = useState<Flight[]>(mockFlights);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isMasterScheduleOpen, setIsMasterScheduleOpen] = useState(false);
-  const [preselectedTime, setPreselectedTime] = useState<string | undefined>(undefined);
-  const [preselectedEndTime, setPreselectedEndTime] = useState<string | undefined>(undefined);
+  const [flights, setFlights] = useState<Flight[]>(() => mockFlights);
+  const [aircraft] = useState<Aircraft[]>(mockAircraft);
+  const [instructors] = useState<Instructor[]>(mockInstructors);
+  const [selectedDate] = useState<Date>(new Date());
   const [filteredAircraftIds, setFilteredAircraftIds] = useState<string[]>([]);
   const [filteredInstructorIds, setFilteredInstructorIds] = useState<string[]>([]);
-  const [preselectedAircraft, setPreselectedAircraft] = useState<string | undefined>(undefined);
-  const [preselectedInstructors, setPreselectedInstructors] = useState<string[]>([]);
-  const [isCalendarCollapsed, setIsCalendarCollapsed] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [preselectedTime, setPreselectedTime] = useState<string | undefined>(undefined);
+  const [preselectedEndTime, setPreselectedEndTime] = useState<string | undefined>(undefined);
 
-  const handleScheduleFlight = (flight: Flight) => {
-    // Check if the flight is in the past
-    const now = new Date();
-    const flightDate = new Date(flight.date);
-    const [hours, minutes] = flight.startTime.split(':').map(Number);
-    flightDate.setHours(hours, minutes, 0, 0);
-    
-    if (flightDate < now) {
-      alert('Cannot schedule a flight in the past. Please select a future time.');
-      return;
-    }
-    
-    setFlights([...flights, flight]);
-    setIsDialogOpen(false);
-    setPreselectedTime(undefined);
-    setPreselectedEndTime(undefined);
-  };
+  const stats = useMemo(() => {
+    const completed = flights.filter((f) => f.status === "completed").length;
+    const scheduled = flights.filter((f) => f.status === "scheduled").length;
+    const cancelled = flights.filter((f) => f.status === "cancelled").length;
+    return { completed, scheduled, cancelled };
+  }, [flights]);
 
   const handleCancelFlight = (id: string, reason: string, comments: string) => {
-    setFlights(flights.map(f => f.id === id ? { ...f, status: 'cancelled' as const, cancelReason: reason, cancelComments: comments } : f));
+    setFlights((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, status: "cancelled", cancelReason: reason, cancelComments: comments } : f))
+    );
   };
 
-  const handleUpdateFlight = (updatedFlight: Flight) => {
-    setFlights(flights.map(f => f.id === updatedFlight.id ? updatedFlight : f));
+  const handleUpdateFlight = (updated: Flight) => {
+    setFlights((prev) => prev.map((f) => (f.id === updated.id ? { ...f, ...updated } : f)));
   };
 
   const handleTimeSlotClick = (startTime: string, endTime?: string) => {
     setPreselectedTime(startTime);
     setPreselectedEndTime(endTime);
-    setIsDialogOpen(true);
+    setScheduleOpen(true);
+  };
+
+  const handleScheduleFlight = (flight: Flight) => {
+    setFlights((prev) => [...prev, flight]);
+  };
+
+  const handleFilterChange = (aircraftIds: string[], instructorIds: string[]) => {
+    setFilteredAircraftIds(aircraftIds);
+    setFilteredInstructorIds(instructorIds);
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-primary border-b-2 border-black shadow-lg">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center justify-start">
-            <ImageWithFallback 
-              src={logo} 
-              alt="Purdue Aviation Logo" 
-              className="h-10 sm:h-12 md:h-16 w-auto"
-            />
-          </div>
-        </div>
-      </header>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Purdue Aviation Manager</Text>
+          <Text style={styles.subtitle}>Lightweight mobile-friendly overview</Text>
+          <View style={styles.statRow}>
+            <StatPill label="Scheduled" value={stats.scheduled} color="#1d4ed8" />
+            <StatPill label="Completed" value={stats.completed} color="#16a34a" />
+            <StatPill label="Cancelled" value={stats.cancelled} color="#dc2626" />
+          </View>
+        </View>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <Tabs defaultValue="schedule" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-4 sm:mb-8 h-auto">
-            <TabsTrigger value="schedule" className="text-xs sm:text-sm py-2 sm:py-2.5 px-2 sm:px-3">
-              <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden xs:inline">Schedule</span>
-              <span className="xs:hidden">Sched</span>
-            </TabsTrigger>
-            <TabsTrigger value="flights" className="text-xs sm:text-sm py-2 sm:py-2.5 px-2 sm:px-3">
-              <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden xs:inline">My Flights</span>
-              <span className="xs:hidden">Flights</span>
-            </TabsTrigger>
-            <TabsTrigger value="aircraft" className="text-xs sm:text-sm py-2 sm:py-2.5 px-2 sm:px-3">
-              <Plane className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden xs:inline">Aircraft</span>
-              <span className="xs:hidden">Planes</span>
-            </TabsTrigger>
-            <TabsTrigger value="instructors" className="text-xs sm:text-sm py-2 sm:py-2.5 px-2 sm:px-3">
-              <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden xs:inline">Instructors</span>
-              <span className="xs:hidden">Instrs</span>
-            </TabsTrigger>
-          </TabsList>
+        <Section title="Timeline">
+          <TimelineView
+            selectedDate={selectedDate}
+            flights={flights}
+            aircraft={aircraft}
+            instructors={instructors}
+            onTimeSlotClick={handleTimeSlotClick}
+            onFilterChange={handleFilterChange}
+          />
+        </Section>
 
-          <TabsContent value="schedule">
-            <div className={`grid grid-cols-1 gap-6 transition-all duration-300 ${
-              isCalendarCollapsed ? 'lg:grid-cols-1' : 'lg:grid-cols-[320px_1fr]'
-            }`}>
-              {!isCalendarCollapsed && (
-                <div className="h-fit">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg">Select a Date</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsCalendarCollapsed(true)}
-                      className="h-8 w-8 p-0 border-0"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="flex justify-center">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      className="rounded-md border border-black"
-                    />
-                  </div>
-                </div>
-              )}
+        <FlightList flights={flights} onCancelFlight={handleCancelFlight} onUpdateFlight={handleUpdateFlight} />
 
-              <div className="relative">
-                {isCalendarCollapsed && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsCalendarCollapsed(false)}
-                    className="absolute -left-2 top-4 z-10 h-10 w-10 p-0 rounded-full shadow-md"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                )}
-                
-                {selectedDate ? (
-                  <BookingInterface
-                    selectedDate={selectedDate}
-                    aircraft={mockAircraft}
-                    instructors={mockInstructors}
-                    flights={flights}
-                    onOpenMasterSchedule={() => setIsMasterScheduleOpen(true)}
-                    onOpenScheduleDialog={() => setIsDialogOpen(true)}
-                    onTimeSlotClick={(startTime, endTime, aircraftId, instructorIds) => {
-                      setPreselectedTime(startTime);
-                      setPreselectedEndTime(endTime);
-                      setPreselectedAircraft(aircraftId);
-                      setPreselectedInstructors(instructorIds || []);
-                      setIsDialogOpen(true);
-                    }}
-                    onFilterChange={(aircraftReg, instructorIds) => {
-                      setFilteredAircraftIds(aircraftReg);
-                      setFilteredInstructorIds(instructorIds);
-                    }}
-                  />
-                ) : (
-                  <Card>
-                    <CardContent className="flex items-center justify-center h-full min-h-[400px]">
-                      <p className="text-center text-slate-500">Please select a date</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </div>
-          </TabsContent>
+        <Section title="Aircraft">
+          <View style={styles.rowWrap}>
+            {aircraft.map((plane) => (
+              <View key={plane.id} style={[styles.card, styles.halfCard]}>
+                <Text style={styles.cardTitle}>{plane.registration}</Text>
+                <Text style={styles.muted}>{plane.name}</Text>
+                <Text style={styles.muted}>{plane.type}</Text>
+                <Badge text={plane.status === "available" ? "Available" : plane.status} tone={plane.status} />
+              </View>
+            ))}
+          </View>
+        </Section>
 
-          <TabsContent value="flights">
-            <FlightList 
-              flights={flights} 
-              onCancelFlight={handleCancelFlight}
-              onUpdateFlight={handleUpdateFlight}
-              currentUser="You"
-            />
-          </TabsContent>
-
-          <TabsContent value="aircraft">
-            <AircraftGrid aircraft={mockAircraft} />
-          </TabsContent>
-
-          <TabsContent value="instructors">
-            <InstructorGrid instructors={mockInstructors} />
-          </TabsContent>
-        </Tabs>
-      </div>
+        <Section title="Instructors">
+          <View style={styles.rowWrap}>
+            {instructors.map((inst) => (
+              <View key={inst.id} style={[styles.card, styles.halfCard]}>
+                <Text style={styles.cardTitle}>{inst.name}</Text>
+                <Text style={styles.muted}>{inst.certifications.join(", ")}</Text>
+                <Badge text={inst.available ? "Available" : "Booked"} tone={inst.available ? "available" : "unavailable"} />
+              </View>
+            ))}
+          </View>
+        </Section>
+      </ScrollView>
 
       <ScheduleDialog
-        open={isDialogOpen}
-        onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) {
-            setPreselectedTime(undefined);
-            setPreselectedEndTime(undefined);
-            setPreselectedAircraft(undefined);
-            setPreselectedInstructors([]);
-          }
-        }}
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
         onSchedule={handleScheduleFlight}
-        aircraft={mockAircraft}
-        instructors={mockInstructors}
+        aircraft={aircraft}
+        instructors={instructors}
         existingFlights={flights}
         preselectedDate={selectedDate}
         preselectedTime={preselectedTime}
         preselectedEndTime={preselectedEndTime}
-        filteredAircraftIds={preselectedAircraft ? [preselectedAircraft] : filteredAircraftIds}
-        filteredInstructorIds={preselectedInstructors.length > 0 ? preselectedInstructors : filteredInstructorIds}
+        filteredAircraftIds={filteredAircraftIds}
+        filteredInstructorIds={filteredInstructorIds}
       />
-
-      <Dialog open={isMasterScheduleOpen} onOpenChange={setIsMasterScheduleOpen}>
-        <DialogContent className="!max-w-none !w-screen !h-screen p-0 gap-0 overflow-hidden flex flex-col !m-0 !translate-x-0 !translate-y-0 !left-0 !top-0 !rounded-none !border-0 !inset-0" aria-describedby="master-schedule-description">
-          <DialogHeader className="px-3 sm:px-4 py-2 sm:py-2.5 border-b bg-slate-50 flex-shrink-0 min-h-fit">
-            <DialogTitle className="text-sm sm:text-base">Master Schedule - {selectedDate?.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</DialogTitle>
-            <DialogDescription id="master-schedule-description" className="text-xs">
-              Complete schedule view for all aircraft and instructors
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex-1 min-h-0 overflow-hidden w-full">
-            {selectedDate && (
-              <MasterSchedule
-                selectedDate={selectedDate}
-                flights={flights}
-                aircraft={mockAircraft}
-                instructors={mockInstructors}
-                currentUser="You"
-                onDateChange={setSelectedDate}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+    </SafeAreaView>
   );
 }
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {children}
+    </View>
+  );
+}
+
+function StatPill({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <View style={[styles.statPill, { backgroundColor: color + "11", borderColor: color + "33" }]}> 
+      <Text style={[styles.statLabel, { color }]}>{label}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+    </View>
+  );
+}
+
+function Badge({ text, tone }: { text: string; tone: string }) {
+  const colors: Record<string, { bg: string; fg: string }> = {
+    available: { bg: "#dcfce7", fg: "#166534" },
+    maintenance: { bg: "#fef9c3", fg: "#854d0e" },
+    unavailable: { bg: "#fee2e2", fg: "#991b1b" },
+    default: { bg: "#e5e7eb", fg: "#111827" },
+  };
+  const palette = colors[tone] || colors.default;
+  return (
+    <View style={[styles.badge, { backgroundColor: palette.bg }]}> 
+      <Text style={[styles.badgeText, { color: palette.fg }]}>{text}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: "#f6f7fb",
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    gap: 16,
+  },
+  header: {
+    gap: 6,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#475569",
+  },
+  statRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 4,
+  },
+  statPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  statLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0f172a",
+    marginTop: 2,
+  },
+  section: {
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  rowWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  card: {
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
+    padding: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+    gap: 4,
+  },
+  halfCard: {
+    width: "48%",
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  muted: {
+    color: "#6b7280",
+    fontSize: 14,
+  },
+  badge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  badgeText: {
+    fontWeight: "700",
+    fontSize: 12,
+  },
+});

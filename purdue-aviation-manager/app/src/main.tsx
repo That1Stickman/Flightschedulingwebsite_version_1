@@ -3,4 +3,10 @@
   import App from "./App";
   import "./index.css";
 
-  createRoot(document.getElementById("root")!).render(<App />);
+  // Only run in environments where `document` exists (web). Prevents Expo native bundles from crashing.
+  if (typeof document !== "undefined") {
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      createRoot(rootEl).render(<App />);
+    }
+  }

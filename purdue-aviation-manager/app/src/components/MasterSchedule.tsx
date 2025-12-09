@@ -26,8 +26,12 @@ const CATEGORY_COLORS = {
   'in-office': 'bg-amber-100 text-slate-800',
   'h6-operations': 'bg-orange-500',
   'groundschool': 'bg-purple-500',
-  'ground-instruction': 'bg-yellow-400 text-slate-800'
-};
+  'ground-instruction': 'bg-yellow-400 text-slate-800',
+  'aircraft-checkout': 'bg-teal-500',
+  'down-time': 'bg-slate-300',
+  'checkride-category': 'bg-indigo-600',
+  'bfr': 'bg-cyan-500'
+} as const;
 
 const LEGEND_ITEMS = [
   { key: 'standard', label: 'Standard', color: 'bg-blue-500' },
@@ -326,10 +330,10 @@ export function MasterSchedule({
                               return null;
                             }
                             
-                            const isUserReservation = reservation && reservation.student === currentUser;
-                            const category = reservation?.flightCategory || 'standard';
-                            const colorClass = CATEGORY_COLORS[category];
-                            const isColumnHovered = hoveredColumn === time;
+                          const isUserReservation = reservation && reservation.student === currentUser;
+                          const category = reservation?.flightCategory || 'standard';
+                          const colorClass = CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS] || 'bg-purple-500';
+                          const isColumnHovered = hoveredColumn === time;
                             const isRowHovered = hoveredRow === `aircraft-${plane.id}`;
                             const spanSlots = reservation ? getFlightSpanSlots(reservation) : 1;
                             
@@ -419,7 +423,7 @@ export function MasterSchedule({
                             
                             const isUserReservation = reservation && reservation.student === currentUser;
                             const category = reservation?.flightCategory || 'standard';
-                            const colorClass = CATEGORY_COLORS[category];
+                            const colorClass = CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS] || 'bg-blue-500';
                             const isColumnHovered = hoveredColumn === time;
                             const isRowHovered = hoveredRow === `instructor-${instructor.id}`;
                             const spanSlots = reservation ? getFlightSpanSlots(reservation) : 1;
@@ -517,7 +521,7 @@ export function MasterSchedule({
                           const reservation = getReservation(time, plane.registration, 'aircraft');
                           const isUserReservation = reservation && reservation.student === currentUser;
                           const category = reservation?.flightCategory || 'standard';
-                          const colorClass = CATEGORY_COLORS[category];
+                          const colorClass = CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS] || 'bg-blue-500';
                           
                           return (
                             <td 
@@ -571,7 +575,7 @@ export function MasterSchedule({
                           const reservation = getReservation(time, instructor.name, 'instructor');
                           const isUserReservation = reservation && reservation.student === currentUser;
                           const category = reservation?.flightCategory || 'standard';
-                          const colorClass = CATEGORY_COLORS[category];
+                          const colorClass = CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS] || 'bg-blue-500';
                           
                           return (
                             <td 

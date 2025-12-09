@@ -29,3 +29,5 @@ function Switch({
 }
 
 export { Switch };
+
+export default Switch;

@@ -48,3 +48,5 @@ function PopoverAnchor({
 }
 
 export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor };
+
+export default Popover;
