@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
-import type { Instructor } from "../App.native";
+import type { Instructor } from "./app/src/App.native";
 import { InstructorProfileDialog } from "./InstructorProfileDialog.native";
 
 interface InstructorGridProps {

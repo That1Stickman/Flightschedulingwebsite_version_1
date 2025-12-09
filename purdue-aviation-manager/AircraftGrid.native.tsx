@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useMemo } from "react";
 import { ScrollView, View, Text, StyleSheet } from "react-native";
-import type { Aircraft } from "../App.native";
+import type { Aircraft } from "./app/src/App.native";
 
 interface AircraftGridProps {
   aircraft: Aircraft[];

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, Modal, TextInput, StyleSheet } from 'react-native';
-import type { Flight } from '../App';
+import type { Flight } from './app/src/App';
 
 interface FlightListProps {
   flights: Flight[];

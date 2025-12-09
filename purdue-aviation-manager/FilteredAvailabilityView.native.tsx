@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
-import type { Aircraft, Instructor, Flight } from "../App.native";
+import type { Aircraft, Instructor, Flight } from "./app/src/App.native";
 
 interface FilteredAvailabilityViewProps {
   selectedDate: Date;

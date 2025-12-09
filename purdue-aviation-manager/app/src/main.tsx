@@ -10,3 +10,4 @@
       createRoot(rootEl).render(<App />);
     }
   }
+  export default App;

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useState } from "react";
 import { Modal, View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
-import type { Flight, Aircraft, Instructor } from "../App.native";
+import type { Flight, Aircraft, Instructor } from "./app/src/App.native";
 
 interface ScheduleDialogProps {
   open: boolean;

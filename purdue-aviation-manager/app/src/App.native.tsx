@@ -1,9 +1,9 @@
 // @ts-nocheck
 import React, { useMemo, useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, View, Text } from "react-native";
-import { FlightList } from "./components/FlightList.native";
-import { TimelineView } from "./components/TimelineView.native";
-import { ScheduleDialog } from "./components/ScheduleDialog.native";
+import { FlightList } from "../../FlightList.native";
+import { TimelineView } from "../../TimelineView.native";
+import { ScheduleDialog } from "../../ScheduleDialog.native";
 
 export interface Flight {
   id: string;

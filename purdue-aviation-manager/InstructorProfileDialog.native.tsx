@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React from "react";
 import { Modal, View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
-import type { Instructor } from "../App.native";
+import type { Instructor } from "./app/src/App.native";
 
 interface InstructorProfileDialogProps {
   instructor: Instructor | null;

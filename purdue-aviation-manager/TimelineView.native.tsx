@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
 import { FilterDialog } from "./FilterDialog.native";
-import type { Flight, Aircraft, Instructor } from "../App.native";
+import type { Flight, Aircraft, Instructor } from "./app/src/App.native";
 
 type ViewMode = "combined" | "aircraft" | "instructor";
 

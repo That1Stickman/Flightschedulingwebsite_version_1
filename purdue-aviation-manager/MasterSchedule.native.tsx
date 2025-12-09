@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useMemo } from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
-import type { Flight, Aircraft, Instructor } from "../App.native";
+import type { Flight, Aircraft, Instructor } from "./app/src/App.native";
 
 interface MasterScheduleProps {
   selectedDate: Date;

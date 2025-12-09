@@ -71,3 +71,4 @@ export function AircraftGrid({ aircraft }: AircraftGridProps) {
     </div>
   );
 }
+export default AircraftGrid;

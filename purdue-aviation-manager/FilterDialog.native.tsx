@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
-import type { Aircraft, Instructor, Flight } from "../App.native";
+import type { Aircraft, Instructor, Flight } from "./app/src/App.native";
 
 type FilterMode = "aircraft-first" | "instructor-first" | null;
 type Step = "select-mode" | "select-primary" | "select-secondary";

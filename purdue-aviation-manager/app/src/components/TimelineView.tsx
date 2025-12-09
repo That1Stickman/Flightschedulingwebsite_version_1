@@ -925,3 +925,4 @@ export function TimelineView({ selectedDate, flights, aircraft, instructors, onT
     </Card>
   );
 }
+export default TimelineView;
