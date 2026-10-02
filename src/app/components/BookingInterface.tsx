@@ -150,12 +150,12 @@ export function BookingInterface({
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-5">
       {!hasActiveFilters ? (
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-4">
           <Button 
             onClick={() => setIsFilterDialogOpen(true)}
-            className="w-full bg-primary hover:bg-primary/90 text-black border-2 border-black h-12 sm:h-14 text-base sm:text-lg font-bold shadow-md"
+            className="w-full bg-primary hover:bg-primary/90 text-black h-12 sm:h-14 text-base sm:text-lg shadow-sm transition-all hover:shadow-md"
             size="lg"
           >
             <Filter className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -165,18 +165,18 @@ export function BookingInterface({
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-black" />
+              <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-black font-bold">or</span>
+              <span className="bg-background px-3 text-slate-500">or</span>
             </div>
           </div>
 
-          <div className="grid gap-2 sm:gap-3">
+          <div className="grid gap-3">
             <Button 
               onClick={onOpenMasterSchedule}
               variant="outline"
-              className="w-full h-10 sm:h-12 border border-black font-bold text-sm sm:text-base"
+              className="w-full h-11 sm:h-12 shadow-sm hover:shadow-md transition-all"
               size="lg"
             >
               <Table className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />

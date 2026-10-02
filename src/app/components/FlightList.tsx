@@ -95,14 +95,14 @@ export function FlightList({ flights, onCancelFlight, onUpdateFlight, currentUse
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 sm:gap-6">
-      <div className="space-y-4 sm:space-y-6">
-        <Card>
-          <CardHeader className="px-3 sm:px-6 py-3 sm:py-6">
-            <CardTitle className="text-lg sm:text-xl">Upcoming Flights</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Your scheduled flight training sessions</CardDescription>
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 sm:gap-6">
+      <div className="space-y-5 sm:space-y-6">
+        <Card className="shadow-sm">
+          <CardHeader className="px-4 sm:px-6 py-4 sm:py-5">
+            <CardTitle className="text-base sm:text-lg font-semibold">Upcoming Flights</CardTitle>
+            <CardDescription className="text-xs sm:text-sm text-slate-600">Your scheduled flight training sessions</CardDescription>
           </CardHeader>
-          <CardContent className="px-3 sm:px-6">
+          <CardContent className="px-4 sm:px-6">
             {upcomingFlights.length > 0 ? (
               <>
                 {/* Desktop Table View */}
@@ -221,12 +221,12 @@ export function FlightList({ flights, onCancelFlight, onUpdateFlight, currentUse
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="px-3 sm:px-6 py-3 sm:py-6">
-            <CardTitle className="text-lg sm:text-xl">Flight History</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Past and cancelled flights</CardDescription>
+        <Card className="shadow-sm">
+          <CardHeader className="px-4 sm:px-6 py-4 sm:py-5">
+            <CardTitle className="text-base sm:text-lg font-semibold">Flight History</CardTitle>
+            <CardDescription className="text-xs sm:text-sm text-slate-600">Past and cancelled flights</CardDescription>
           </CardHeader>
-          <CardContent className="px-3 sm:px-6">
+          <CardContent className="px-4 sm:px-6">
             {pastFlights.length > 0 ? (
               <>
                 {/* Desktop Table View */}
@@ -394,77 +394,81 @@ export function FlightList({ flights, onCancelFlight, onUpdateFlight, currentUse
 
       {/* Edit Dialog */}
       <Dialog open={!!editingFlight} onOpenChange={(open) => !open && setEditingFlight(null)}>
-        <DialogContent aria-describedby="edit-flight-description">
+        <DialogContent className="max-w-sm" aria-describedby="edit-flight-description">
           <DialogHeader>
             <DialogTitle>Edit Flight</DialogTitle>
-            <DialogDescription id="edit-flight-description">
+            <DialogDescription id="edit-flight-description" className="sr-only">
               Modify the details of your scheduled flight
             </DialogDescription>
           </DialogHeader>
           {editingFlight && (
-            <div className="space-y-4">
-              <div>
-                <Label>Start Time</Label>
+            <div className="grid grid-cols-2 gap-3 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-slate-600">Start Time</Label>
                 <Input
                   type="time"
+                  className="h-9 text-sm"
                   value={editingFlight.startTime}
                   onChange={(e) => setEditingFlight({ ...editingFlight, startTime: e.target.value })}
                 />
               </div>
-              <div>
-                <Label>End Time</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-slate-600">End Time</Label>
                 <Input
                   type="time"
+                  className="h-9 text-sm"
                   value={editingFlight.endTime}
                   onChange={(e) => setEditingFlight({ ...editingFlight, endTime: e.target.value })}
                 />
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingFlight(null)}>Cancel</Button>
-            <Button onClick={handleEditSave}>Save Changes</Button>
+          <DialogFooter className="pt-2 border-t">
+            <Button variant="outline" size="sm" onClick={() => setEditingFlight(null)}>Cancel</Button>
+            <Button size="sm" onClick={handleEditSave}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Cancel Dialog */}
       <Dialog open={!!cancelingFlight} onOpenChange={(open) => !open && setCancelingFlight(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-md" aria-describedby="cancel-flight-description">
           <DialogHeader>
             <DialogTitle>Cancel Flight</DialogTitle>
-            <DialogDescription>Please provide a reason for cancelling this flight</DialogDescription>
+            <DialogDescription id="cancel-flight-description" className="sr-only">
+              Provide a reason for cancellation
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Reason for Cancelling</Label>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-slate-600">Reason for Cancelling</Label>
               <Select value={cancelReason} onValueChange={setCancelReason}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 text-sm">
                   <SelectValue placeholder="Select a reason" />
                 </SelectTrigger>
                 <SelectContent>
                   {cancelReasons.map(reason => (
-                    <SelectItem key={reason} value={reason}>
-                      {reason}
-                    </SelectItem>
+                    <SelectItem key={reason} value={reason}>{reason}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Comments / Explanation</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-slate-600">Comments <span className="text-slate-400 font-normal">(optional)</span></Label>
               <Textarea
                 value={cancelComments}
                 onChange={(e) => setCancelComments(e.target.value)}
-                placeholder="Optional additional details..."
+                placeholder="Additional details..."
                 rows={3}
+                className="text-sm resize-none"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelingFlight(null)}>Back</Button>
-            <Button 
-              variant="destructive" 
+          <DialogFooter className="pt-2 border-t">
+            <Button variant="outline" size="sm" onClick={() => setCancelingFlight(null)}>Back</Button>
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={handleCancelSubmit}
               disabled={!cancelReason}
             >

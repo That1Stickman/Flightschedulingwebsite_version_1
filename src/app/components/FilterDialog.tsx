@@ -119,7 +119,7 @@ export function FilterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto" aria-describedby="filter-dialog-description">
+      <DialogContent className="max-w-4xl" aria-describedby="filter-dialog-description">
         <DialogHeader>
           <DialogTitle>Find an Opening</DialogTitle>
           <DialogDescription id="filter-dialog-description">
@@ -175,7 +175,7 @@ export function FilterDialog({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="max-h-80 overflow-y-auto border-t">
+                  <div className="max-h-[55vh] overflow-y-auto border-t">
                     {/* Aircraft Selection (Primary or Secondary) */}
                     {((step === 'select-primary' && filterMode === 'aircraft-first') || 
                       (step === 'select-secondary' && filterMode === 'instructor-first')) && (
@@ -235,7 +235,7 @@ export function FilterDialog({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="max-h-80 overflow-y-auto border-t">
+                  <div className="max-h-[55vh] overflow-y-auto border-t">
                     {/* Selected Aircraft Display */}
                     {((step === 'select-primary' && filterMode === 'aircraft-first') || 
                       (step === 'select-secondary' && filterMode === 'instructor-first')) && (

@@ -29,29 +29,29 @@ export function AircraftGrid({ aircraft }: AircraftGridProps) {
 
   return (
     <div>
-      <div className="mb-4 sm:mb-6">
-        <h2 className="text-xl sm:text-2xl mb-2">Aircraft Fleet</h2>
+      <div className="mb-5 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-1.5">Aircraft Fleet</h2>
         <p className="text-sm sm:text-base text-slate-600">Available aircraft for training</p>
       </div>
       
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         {sortedGroups.map(([groupName, planes]) => (
-          <Card key={groupName}>
-            <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 py-3 sm:py-6">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Plane className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+          <Card key={groupName} className="shadow-sm">
+            <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6 py-4 sm:py-5">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-semibold">
+                <Plane className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 {groupName}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-3 sm:px-6">
+            <CardContent className="px-4 sm:px-6">
               <div className="space-y-2">
                 {planes.map(plane => (
                   <div
                     key={plane.id}
-                    className="flex flex-col xs:flex-row xs:items-center xs:justify-between py-2 sm:py-3 px-3 sm:px-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors gap-1 xs:gap-3"
+                    className="flex flex-col xs:flex-row xs:items-center xs:justify-between py-2.5 sm:py-3 px-3 sm:px-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all gap-1 xs:gap-3 shadow-sm"
                   >
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <Plane className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
+                      <Plane className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" />
                       <div className="flex flex-col xs:flex-row xs:items-center gap-0 xs:gap-2">
                         <span className="font-medium text-slate-900 text-sm sm:text-base">
                           {plane.registration}

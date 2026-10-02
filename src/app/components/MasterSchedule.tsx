@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { Card, CardContent } from './ui/card';
-import { ScrollArea } from './ui/scroll-area';
-import { Badge } from './ui/badge';
 import { Calendar } from './ui/calendar';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { Flight, Aircraft, Instructor } from '../App';
@@ -13,6 +11,13 @@ interface MasterScheduleProps {
   instructors: Instructor[];
   currentUser?: string;
   onDateChange?: (date: Date) => void;
+  onCellClick?: (data: {
+    date: Date;
+    startTime: string;
+    resourceType: 'aircraft' | 'instructor';
+    resourceId: string;
+    resourceName: string;
+  }) => void;
 }
 
 const CATEGORY_COLORS = {
@@ -49,13 +54,12 @@ export function MasterSchedule({
   aircraft, 
   instructors, 
   currentUser = 'You',
-  onDateChange 
+  onDateChange,
+  onCellClick
 }: MasterScheduleProps) {
-  const [hoveredTime, setHoveredTime] = useState<string | null>(null);
   const [hoveredColumn, setHoveredColumn] = useState<string | null>(null);
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
   const [localDate, setLocalDate] = useState(selectedDate);
-  const [isLegendCollapsed, setIsLegendCollapsed] = useState(false);
   const [isCalendarCollapsed, setIsCalendarCollapsed] = useState(true);
 
   // Generate time slots from 6:00 AM to 10:00 PM (every 30 minutes)
@@ -151,6 +155,18 @@ export function MasterSchedule({
     }
   };
 
+  const handleCellClick = (data: {
+    date: Date;
+    startTime: string;
+    resourceType: 'aircraft' | 'instructor';
+    resourceId: string;
+    resourceName: string;
+  }) => {
+    if (onCellClick) {
+      onCellClick(data);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2 h-full w-full min-h-0 p-2 sm:p-3 md:p-4">
       {/* Mobile: Calendar and Legend in collapsible cards */}
@@ -171,12 +187,12 @@ export function MasterSchedule({
           <div className="flex gap-2">
             <Card className="flex-shrink-0">
               <CardContent className="p-1">
-                <div className="flex items-center justify-center -m-2">
+                <div className="flex items-center justify-center">
                   <Calendar
                     mode="single"
                     selected={localDate}
                     onSelect={handleDateChange}
-                    className="rounded-md scale-[0.65]"
+                    className="rounded-md scale-[0.75]"
                   />
                 </div>
               </CardContent>
@@ -285,7 +301,7 @@ export function MasterSchedule({
                             <th 
                               key={time} 
                               colSpan={2}
-                              className={`border border-slate-300 p-0.5 font-bold min-w-[64px] text-[9px] text-black text-center transition-colors ${
+                              className={`border border-slate-300 p-0.5 font-bold min-w-[64px] text-[9px] text-black transition-colors ${
                                 hoveredColumn === time || hoveredColumn === timeSlots[index + 1] ? 'bg-blue-200' : 'bg-slate-100'
                               }`}
                               onMouseEnter={() => setHoveredColumn(time)}
@@ -348,6 +364,13 @@ export function MasterSchedule({
                                   setHoveredColumn(null);
                                   setHoveredRow(null);
                                 }}
+                                onClick={() => handleCellClick({
+                                  date: localDate,
+                                  startTime: time,
+                                  resourceType: 'aircraft',
+                                  resourceId: plane.registration,
+                                  resourceName: plane.registration
+                                })}
                               >
                                 {reservation && (
                                   <div className={`font-medium leading-none overflow-hidden ${
@@ -401,7 +424,7 @@ export function MasterSchedule({
                       {instructors.map((instructor) => (
                         <tr key={instructor.id}>
                           <td 
-                            className={`border border-slate-300 p-1 sticky left-0 z-10 font-medium text-[8px] whitespace-nowrap min-w-[64px] transition-colors ${
+                            className={`border border-slate-300 p-1.5 sm:p-1 sticky left-0 z-10 font-medium text-[9px] sm:text-[8px] whitespace-nowrap min-w-[56px] sm:min-w-[64px] transition-colors ${
                               hoveredRow === `instructor-${instructor.id}` ? 'bg-blue-100' : 'bg-slate-50'
                             }`}
                             onMouseEnter={() => setHoveredRow(`instructor-${instructor.id}`)}
@@ -428,7 +451,7 @@ export function MasterSchedule({
                               <td 
                                 key={time}
                                 colSpan={spanSlots}
-                                className={`border border-slate-300 p-0.5 text-center text-[7px] transition-colors min-w-[32px] ${
+                                className={`border border-slate-300 p-1 sm:p-0.5 text-center text-[8px] sm:text-[7px] min-w-[36px] sm:min-w-[32px] transition-colors ${
                                   reservation ? colorClass : ((isColumnHovered || isRowHovered) ? 'bg-blue-100' : 'bg-white')
                                 } ${(isColumnHovered || isRowHovered) && reservation ? 'ring-2 ring-blue-400 ring-inset' : ''}`}
                                 onMouseEnter={() => {
@@ -439,6 +462,13 @@ export function MasterSchedule({
                                   setHoveredColumn(null);
                                   setHoveredRow(null);
                                 }}
+                                onClick={() => handleCellClick({
+                                  date: localDate,
+                                  startTime: time,
+                                  resourceType: 'instructor',
+                                  resourceId: instructor.name,
+                                  resourceName: abbreviateName(instructor.name)
+                                })}
                               >
                                 {reservation && (
                                   <div className={`font-medium leading-none overflow-hidden ${
@@ -488,7 +518,11 @@ export function MasterSchedule({
                           <th 
                             key={time} 
                             colSpan={2}
-                            className="border border-slate-300 p-1 sm:p-0.5 font-bold min-w-[72px] sm:min-w-[64px] text-[10px] sm:text-[9px] text-black bg-slate-100"
+                            className={`border border-slate-300 p-1 sm:p-0.5 font-bold min-w-[72px] sm:min-w-[64px] text-[10px] sm:text-[9px] text-black transition-colors ${
+                              hoveredColumn === time || hoveredColumn === timeSlots[index + 1] ? 'bg-blue-200' : 'bg-slate-100'
+                            }`}
+                            onMouseEnter={() => setHoveredColumn(time)}
+                            onMouseLeave={() => setHoveredColumn(null)}
                           >
                             <div className="whitespace-nowrap">{formatTime(time)}</div>
                           </th>
@@ -509,7 +543,11 @@ export function MasterSchedule({
                     {aircraft.map((plane) => (
                       <tr key={plane.id}>
                         <td 
-                          className="border border-slate-300 p-1.5 sm:p-1 sticky left-0 z-10 bg-slate-50 font-medium text-[9px] sm:text-[8px] whitespace-nowrap min-w-[56px] sm:min-w-[64px]"
+                          className={`border border-slate-300 p-1.5 sm:p-1 sticky left-0 z-10 font-medium text-[9px] sm:text-[8px] whitespace-nowrap min-w-[56px] sm:min-w-[64px] transition-colors ${
+                            hoveredRow === `aircraft-${plane.id}` ? 'bg-blue-100' : 'bg-slate-50'
+                          }`}
+                          onMouseEnter={() => setHoveredRow(`aircraft-${plane.id}`)}
+                          onMouseLeave={() => setHoveredRow(null)}
                         >
                           {plane.registration}
                         </td>
@@ -518,13 +556,30 @@ export function MasterSchedule({
                           const isUserReservation = reservation && reservation.student === currentUser;
                           const category = reservation?.flightCategory || 'standard';
                           const colorClass = CATEGORY_COLORS[category];
+                          const isColumnHovered = hoveredColumn === time;
+                          const isRowHovered = hoveredRow === `aircraft-${plane.id}`;
                           
                           return (
                             <td 
                               key={time} 
-                              className={`border border-slate-300 p-1 sm:p-0.5 text-center text-[8px] sm:text-[7px] min-w-[36px] sm:min-w-[32px] ${
-                                reservation ? colorClass : 'bg-white'
-                              }`}
+                              className={`border border-slate-300 p-1 sm:p-0.5 text-center text-[8px] sm:text-[7px] min-w-[36px] sm:min-w-[32px] transition-colors ${
+                                reservation ? colorClass : ((isColumnHovered || isRowHovered) ? 'bg-blue-100' : 'bg-white')
+                              } ${(isColumnHovered || isRowHovered) && reservation ? 'ring-2 ring-blue-400 ring-inset' : ''}`}
+                              onMouseEnter={() => {
+                                setHoveredColumn(time);
+                                setHoveredRow(`aircraft-${plane.id}`);
+                              }}
+                              onMouseLeave={() => {
+                                setHoveredColumn(null);
+                                setHoveredRow(null);
+                              }}
+                              onClick={() => handleCellClick({
+                                date: localDate,
+                                startTime: time,
+                                resourceType: 'aircraft',
+                                resourceId: plane.registration,
+                                resourceName: plane.registration
+                              })}
                             >
                               {reservation && (
                                 <div className={`font-medium leading-none overflow-hidden ${
@@ -563,22 +618,51 @@ export function MasterSchedule({
                     {instructors.map((instructor) => (
                       <tr key={instructor.id}>
                         <td 
-                          className="border border-slate-300 p-1.5 sm:p-1 sticky left-0 z-10 bg-slate-50 font-medium text-[9px] sm:text-[8px] whitespace-nowrap min-w-[56px] sm:min-w-[64px]"
+                          className={`border border-slate-300 p-1.5 sm:p-1 sticky left-0 z-10 font-medium text-[9px] sm:text-[8px] whitespace-nowrap min-w-[56px] sm:min-w-[64px] transition-colors ${
+                            hoveredRow === `instructor-${instructor.id}` ? 'bg-blue-100' : 'bg-slate-50'
+                          }`}
+                          onMouseEnter={() => setHoveredRow(`instructor-${instructor.id}`)}
+                          onMouseLeave={() => setHoveredRow(null)}
                         >
                           {abbreviateName(instructor.name)}
                         </td>
                         {timeSlots.map((time) => {
                           const reservation = getReservation(time, instructor.name, 'instructor');
+                          
+                          // If this slot is part of a reservation but not the first slot, skip it
+                          if (reservation && !isFirstSlotOfReservation(time, reservation)) {
+                            return null;
+                          }
+                          
                           const isUserReservation = reservation && reservation.student === currentUser;
                           const category = reservation?.flightCategory || 'standard';
                           const colorClass = CATEGORY_COLORS[category];
+                          const isColumnHovered = hoveredColumn === time;
+                          const isRowHovered = hoveredRow === `instructor-${instructor.id}`;
+                          const spanSlots = reservation ? getFlightSpanSlots(reservation) : 1;
                           
                           return (
                             <td 
-                              key={time} 
-                              className={`border border-slate-300 p-1 sm:p-0.5 text-center text-[8px] sm:text-[7px] min-w-[36px] sm:min-w-[32px] ${
-                                reservation ? colorClass : 'bg-white'
-                              }`}
+                              key={time}
+                              colSpan={spanSlots}
+                              className={`border border-slate-300 p-1 sm:p-0.5 text-center text-[8px] sm:text-[7px] min-w-[36px] sm:min-w-[32px] transition-colors ${
+                                reservation ? colorClass : ((isColumnHovered || isRowHovered) ? 'bg-blue-100' : 'bg-white')
+                              } ${(isColumnHovered || isRowHovered) && reservation ? 'ring-2 ring-blue-400 ring-inset' : ''}`}
+                              onMouseEnter={() => {
+                                setHoveredColumn(time);
+                                setHoveredRow(`instructor-${instructor.id}`);
+                              }}
+                              onMouseLeave={() => {
+                                setHoveredColumn(null);
+                                setHoveredRow(null);
+                              }}
+                              onClick={() => handleCellClick({
+                                date: localDate,
+                                startTime: time,
+                                resourceType: 'instructor',
+                                resourceId: instructor.name,
+                                resourceName: abbreviateName(instructor.name)
+                              })}
                             >
                               {reservation && (
                                 <div className={`font-medium leading-none overflow-hidden ${

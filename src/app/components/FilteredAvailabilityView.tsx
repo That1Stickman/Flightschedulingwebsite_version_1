@@ -205,14 +205,14 @@ export function FilteredAvailabilityView({
   const filteredAircraft = aircraft.filter(a => filteredAircraftIds.includes(a.registration));
 
   return (
-    <Card className="w-full">
+    <Card className="w-full shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-blue-600" />
-            <CardTitle className="text-lg">Filtered Availability - {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</CardTitle>
+            <Clock className="w-5 h-5 text-primary" />
+            <CardTitle className="text-base font-semibold">Filtered Availability - {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</CardTitle>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-slate-100">
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -222,7 +222,7 @@ export function FilteredAvailabilityView({
       </CardHeader>
       <CardContent>
         {selectedSlot && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="mb-4 p-4 bg-green-50 rounded-lg shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-green-900">
@@ -235,10 +235,10 @@ export function FilteredAvailabilityView({
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleConfirmSelection} className="bg-green-600 hover:bg-green-700">
+                <Button size="sm" onClick={handleConfirmSelection} className="bg-green-600 hover:bg-green-700 shadow-sm">
                   Book Flight
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setSelectedSlot(null)}>
+                <Button size="sm" variant="outline" onClick={() => setSelectedSlot(null)} className="shadow-sm">
                   Clear
                 </Button>
               </div>
@@ -246,14 +246,14 @@ export function FilteredAvailabilityView({
           </div>
         )}
 
-        <div className="overflow-auto max-h-[600px] border rounded-lg">
+        <div className="overflow-auto max-h-[600px] rounded-lg shadow-sm border">
           <table className="w-full border-collapse" onMouseLeave={() => { setDragStart(null); setDragEnd(null); }}>
-            <thead className="sticky top-0 bg-slate-100 z-10">
+            <thead className="sticky top-0 bg-slate-50 z-10">
               <tr>
-                <th className="border p-2 text-left font-medium text-sm w-24 bg-slate-100">Time</th>
+                <th className="border-b border-r p-2.5 text-left font-medium text-sm w-24 bg-slate-50">Time</th>
                 {filteredAircraft.map(ac => (
-                  <th key={ac.id} className="border p-2 text-center font-medium text-sm min-w-[120px] bg-slate-100">
-                    <div>{ac.registration}</div>
+                  <th key={ac.id} className="border-b border-r last:border-r-0 p-2.5 text-center font-medium text-sm min-w-[120px] bg-slate-50">
+                    <div className="font-semibold">{ac.registration}</div>
                     <div className="text-xs text-slate-600 font-normal">{ac.type}</div>
                   </th>
                 ))}
@@ -262,7 +262,7 @@ export function FilteredAvailabilityView({
             <tbody>
               {timeSlots.map(timeSlot => (
                 <tr key={timeSlot}>
-                  <td className="border p-2 text-sm font-medium bg-slate-50 sticky left-0 z-[5]">
+                  <td className="border-b border-r p-2 text-sm font-medium bg-slate-50 sticky left-0 z-[5]">
                     {formatTime(timeSlot)}
                   </td>
                   {filteredAircraft.map(ac => {
@@ -275,9 +275,9 @@ export function FilteredAvailabilityView({
                     return (
                       <td
                         key={ac.id}
-                        className={`border p-1 text-center text-xs cursor-pointer transition-colors select-none ${
+                        className={`border-b border-r last:border-r-0 p-1 text-center text-xs cursor-pointer transition-all select-none ${
                           isInSelection
-                            ? 'bg-blue-200 border-blue-400'
+                            ? 'bg-blue-200'
                             : isSelectable
                             ? 'bg-green-50 hover:bg-green-100'
                             : 'bg-red-50'
@@ -313,16 +313,16 @@ export function FilteredAvailabilityView({
 
         <div className="mt-4 flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-50 border border-slate-300 rounded"></div>
-            <span>Available</span>
+            <div className="w-4 h-4 bg-green-50 border rounded"></div>
+            <span className="text-slate-600">Available</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-red-50 border border-slate-300 rounded"></div>
-            <span>Unavailable</span>
+            <div className="w-4 h-4 bg-red-50 border rounded"></div>
+            <span className="text-slate-600">Unavailable</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-200 border border-blue-400 rounded"></div>
-            <span>Selected</span>
+            <div className="w-4 h-4 bg-blue-200 border border-blue-300 rounded"></div>
+            <span className="text-slate-600">Selected</span>
           </div>
         </div>
       </CardContent>

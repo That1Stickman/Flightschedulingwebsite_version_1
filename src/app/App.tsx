@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar } from './components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
@@ -11,8 +11,9 @@ import { AircraftGrid } from './components/AircraftGrid';
 import { InstructorGrid } from './components/InstructorGrid';
 import { BookingInterface } from './components/BookingInterface';
 import { MasterSchedule } from './components/MasterSchedule';
+import { EndTimeDialog } from './components/EndTimeDialog';
 import { ImageWithFallback } from './components/figma/ImageWithFallback';
-import { Plane, Calendar as CalendarIcon, Users, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plane, Calendar as CalendarIcon, Users, BookOpen, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw, X } from 'lucide-react';
 import logo from 'figma:asset/6ef1e3d2e65cbd6e5803269fdc27cc1e9b913d87.png';
 
 export interface Flight {
@@ -425,6 +426,121 @@ export default function App() {
   const [preselectedAircraft, setPreselectedAircraft] = useState<string | undefined>(undefined);
   const [preselectedInstructors, setPreselectedInstructors] = useState<string[]>([]);
   const [isCalendarCollapsed, setIsCalendarCollapsed] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(100);
+  
+  // For master schedule clicks
+  const [isEndTimeDialogOpen, setIsEndTimeDialogOpen] = useState(false);
+  const [masterScheduleClickData, setMasterScheduleClickData] = useState<{
+    date: Date;
+    startTime: string;
+    resourceType: 'aircraft' | 'instructor';
+    resourceId: string;
+    resourceName: string;
+  } | null>(null);
+
+  // Helper function to convert time to minutes
+  const timeToMinutes = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  // Check if a resource is available during an entire time block
+  const isResourceAvailable = (
+    resourceId: string,
+    resourceType: 'aircraft' | 'instructor',
+    startTime: string,
+    endTime: string,
+    date: Date
+  ) => {
+    const startMinutes = timeToMinutes(startTime);
+    const endMinutes = timeToMinutes(endTime);
+    
+    const conflictingFlights = flights.filter(flight => {
+      if (flight.status === 'cancelled') return false;
+      if (flight.date.toDateString() !== date.toDateString()) return false;
+      
+      const flightStartMinutes = timeToMinutes(flight.startTime);
+      const flightEndMinutes = timeToMinutes(flight.endTime);
+      
+      // Check if there's any overlap
+      const hasOverlap = !(flightEndMinutes <= startMinutes || flightStartMinutes >= endMinutes);
+      
+      if (resourceType === 'aircraft') {
+        return flight.aircraft === resourceId && hasOverlap;
+      } else {
+        return flight.instructor === resourceId && hasOverlap;
+      }
+    });
+    
+    return conflictingFlights.length === 0;
+  };
+
+  // Get available resources for a time block
+  const getAvailableResources = (
+    resourceType: 'aircraft' | 'instructor',
+    startTime: string,
+    endTime: string,
+    date: Date
+  ) => {
+    if (resourceType === 'aircraft') {
+      // Return available instructor IDs (not names)
+      return mockInstructors.filter(instructor =>
+        isResourceAvailable(instructor.name, 'instructor', startTime, endTime, date)
+      ).map(i => i.id);
+    } else {
+      // Return available aircraft registrations
+      return mockAircraft.filter(aircraft =>
+        isResourceAvailable(aircraft.registration, 'aircraft', startTime, endTime, date)
+      ).map(a => a.registration);
+    }
+  };
+
+  const handleMasterScheduleCellClick = (data: {
+    date: Date;
+    startTime: string;
+    resourceType: 'aircraft' | 'instructor';
+    resourceId: string;
+    resourceName: string;
+  }) => {
+    setMasterScheduleClickData(data);
+    setIsEndTimeDialogOpen(true);
+  };
+
+  const handleEndTimeConfirm = (endTime: string) => {
+    if (!masterScheduleClickData) return;
+    
+    const { date, startTime, resourceType, resourceId } = masterScheduleClickData;
+    
+    // Get available resources for this time block
+    const availableResources = getAvailableResources(resourceType, startTime, endTime, date);
+    
+    // Set the preselected data based on what was clicked
+    setSelectedDate(date);
+    setPreselectedTime(startTime);
+    setPreselectedEndTime(endTime);
+    
+    if (resourceType === 'aircraft') {
+      // Clicked on aircraft - preselect aircraft and filter instructors
+      setPreselectedAircraft(resourceId);
+      setFilteredInstructorIds(availableResources);
+      setPreselectedInstructors([]);
+      setFilteredAircraftIds([]);
+    } else {
+      // Clicked on instructor - preselect instructor and filter aircraft
+      // resourceId is the instructor name, we need to convert it to ID
+      const instructor = mockInstructors.find(i => i.name === resourceId);
+      if (instructor) {
+        setPreselectedInstructors([instructor.id]);
+      }
+      setFilteredAircraftIds(availableResources);
+      setPreselectedAircraft(undefined);
+      setFilteredInstructorIds([]);
+    }
+    
+    setIsEndTimeDialogOpen(false);
+    setIsDialogOpen(true);
+    setMasterScheduleClickData(null);
+  };
 
   const handleScheduleFlight = (flight: Flight) => {
     // Check if the flight is in the past
@@ -458,60 +574,99 @@ export default function App() {
     setIsDialogOpen(true);
   };
 
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 10, 200));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 10, 80));
+  };
+
+  const handleZoomReset = () => {
+    setZoomLevel(100);
+  };
+
+  const zoomScale = zoomLevel / 100;
+
+  // Apply zoom to root element for portals
+  useEffect(() => {
+    const root = document.getElementById('app-root');
+    console.log('Zoom effect triggered. zoomScale:', zoomScale, 'root found:', !!root);
+    if (root) {
+      root.style.transform = `scale(${zoomScale})`;
+      root.style.transformOrigin = 'top left';
+      root.style.width = `${100 / zoomScale}%`;
+      root.style.minHeight = `${100 / zoomScale}vh`;
+      console.log('Applied transform to root:', root.style.transform);
+    } else {
+      console.error('app-root element not found!');
+    }
+    
+    return () => {
+      if (root) {
+        root.style.transform = '';
+        root.style.transformOrigin = '';
+        root.style.width = '';
+        root.style.minHeight = '';
+      }
+    };
+  }, [zoomScale]);
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-primary border-b-2 border-black shadow-lg">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex items-center justify-start">
-            <ImageWithFallback 
-              src={logo} 
-              alt="Purdue Aviation Logo" 
-              className="h-10 sm:h-12 md:h-16 w-auto"
-            />
+    <>
+      <div id="app-root" className="min-h-screen bg-background overflow-x-auto relative">
+        {/* Header */}
+        <header className="bg-primary shadow-sm">
+          <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+            <div className="flex items-center justify-between">
+              <ImageWithFallback 
+                src={logo} 
+                alt="Purdue Aviation Logo" 
+                className="h-10 sm:h-12 md:h-16 w-auto"
+              />
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
         <Tabs defaultValue="schedule" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-4 sm:mb-8 h-auto">
-            <TabsTrigger value="schedule" className="text-xs sm:text-sm py-2 sm:py-2.5 px-2 sm:px-3">
-              <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-6 sm:mb-8 h-auto bg-white shadow-sm border">
+            <TabsTrigger value="schedule" className="text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+              <CalendarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
               <span className="hidden xs:inline">Schedule</span>
               <span className="xs:hidden">Sched</span>
             </TabsTrigger>
-            <TabsTrigger value="flights" className="text-xs sm:text-sm py-2 sm:py-2.5 px-2 sm:px-3">
-              <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <TabsTrigger value="flights" className="text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+              <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
               <span className="hidden xs:inline">My Flights</span>
               <span className="xs:hidden">Flights</span>
             </TabsTrigger>
-            <TabsTrigger value="aircraft" className="text-xs sm:text-sm py-2 sm:py-2.5 px-2 sm:px-3">
-              <Plane className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <TabsTrigger value="aircraft" className="text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+              <Plane className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
               <span className="hidden xs:inline">Aircraft</span>
               <span className="xs:hidden">Planes</span>
             </TabsTrigger>
-            <TabsTrigger value="instructors" className="text-xs sm:text-sm py-2 sm:py-2.5 px-2 sm:px-3">
-              <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <TabsTrigger value="instructors" className="text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
               <span className="hidden xs:inline">Instructors</span>
               <span className="xs:hidden">Instrs</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="schedule">
+          <TabsContent value="schedule" className="mt-0">
             <div className={`grid grid-cols-1 gap-6 transition-all duration-300 ${
-              isCalendarCollapsed ? 'lg:grid-cols-1' : 'lg:grid-cols-[320px_1fr]'
+              isCalendarCollapsed ? 'lg:grid-cols-1' : 'lg:grid-cols-[300px_1fr]'
             }`}>
               {!isCalendarCollapsed && (
                 <div className="h-fit">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg">Select a Date</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-base font-semibold">Select a Date</h3>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setIsCalendarCollapsed(true)}
-                      className="h-8 w-8 p-0 border-0"
+                      className="h-8 w-8 p-0"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -521,7 +676,7 @@ export default function App() {
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}
-                      className="rounded-md border border-black"
+                      className="rounded-lg border shadow-sm bg-white"
                     />
                   </div>
                 </div>
@@ -533,7 +688,7 @@ export default function App() {
                     variant="outline"
                     size="sm"
                     onClick={() => setIsCalendarCollapsed(false)}
-                    className="absolute -left-2 top-4 z-10 h-10 w-10 p-0 rounded-full shadow-md"
+                    className="absolute -left-3 top-4 z-10 h-10 w-10 p-0 rounded-full shadow-md bg-white hover:bg-slate-50"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -560,7 +715,7 @@ export default function App() {
                     }}
                   />
                 ) : (
-                  <Card>
+                  <Card className="shadow-sm">
                     <CardContent className="flex items-center justify-center h-full min-h-[400px]">
                       <p className="text-center text-slate-500">Please select a date</p>
                     </CardContent>
@@ -570,7 +725,7 @@ export default function App() {
             </div>
           </TabsContent>
 
-          <TabsContent value="flights">
+          <TabsContent value="flights" className="mt-0">
             <FlightList 
               flights={flights} 
               onCancelFlight={handleCancelFlight}
@@ -579,16 +734,20 @@ export default function App() {
             />
           </TabsContent>
 
-          <TabsContent value="aircraft">
+          <TabsContent value="aircraft" className="mt-0">
             <AircraftGrid aircraft={mockAircraft} />
           </TabsContent>
 
-          <TabsContent value="instructors">
+          <TabsContent value="instructors" className="mt-0">
             <InstructorGrid instructors={mockInstructors} />
           </TabsContent>
         </Tabs>
       </div>
 
+      </div>
+
+      {/* Dialogs rendered outside #app-root so CSS transform on the scaled container
+          does not break position:fixed centering on the physical viewport */}
       <ScheduleDialog
         open={isDialogOpen}
         onOpenChange={(open) => {
@@ -598,6 +757,8 @@ export default function App() {
             setPreselectedEndTime(undefined);
             setPreselectedAircraft(undefined);
             setPreselectedInstructors([]);
+            setFilteredAircraftIds([]);
+            setFilteredInstructorIds([]);
           }
         }}
         onSchedule={handleScheduleFlight}
@@ -607,17 +768,34 @@ export default function App() {
         preselectedDate={selectedDate}
         preselectedTime={preselectedTime}
         preselectedEndTime={preselectedEndTime}
-        filteredAircraftIds={preselectedAircraft ? [preselectedAircraft] : filteredAircraftIds}
-        filteredInstructorIds={preselectedInstructors.length > 0 ? preselectedInstructors : filteredInstructorIds}
+        preselectedAircraft={preselectedAircraft}
+        preselectedInstructor={preselectedInstructors.length > 0 ? mockInstructors.find(i => i.id === preselectedInstructors[0])?.name : undefined}
+        filteredAircraftIds={filteredAircraftIds}
+        filteredInstructorIds={filteredInstructorIds.length > 0 ? filteredInstructorIds : preselectedInstructors}
       />
 
       <Dialog open={isMasterScheduleOpen} onOpenChange={setIsMasterScheduleOpen}>
-        <DialogContent className="!max-w-none !w-screen !h-screen p-0 gap-0 overflow-hidden flex flex-col !m-0 !translate-x-0 !translate-y-0 !left-0 !top-0 !rounded-none !border-0 !inset-0" aria-describedby="master-schedule-description">
-          <DialogHeader className="px-3 sm:px-4 py-2 sm:py-2.5 border-b bg-slate-50 flex-shrink-0 min-h-fit">
-            <DialogTitle className="text-sm sm:text-base">Master Schedule - {selectedDate?.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</DialogTitle>
-            <DialogDescription id="master-schedule-description" className="text-xs">
+        <DialogContent
+          className="!max-w-none p-0 gap-0 overflow-hidden flex flex-col !m-0 !translate-x-0 !translate-y-0 !left-0 !top-0 !rounded-none !border-0 !inset-0 [&>button]:hidden"
+          style={{
+            width: '100vw',
+            height: '100vh'
+          }}
+          aria-describedby="master-schedule-description">
+          <DialogHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b bg-slate-50 flex-shrink-0 min-h-fit relative">
+            <DialogTitle className="text-base sm:text-lg pr-10">Master Schedule - {selectedDate?.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</DialogTitle>
+            <DialogDescription id="master-schedule-description" className="text-xs text-slate-600">
               Complete schedule view for all aircraft and instructors
             </DialogDescription>
+            <Button
+              onClick={() => setIsMasterScheduleOpen(false)}
+              variant="ghost"
+              size="sm"
+              className="absolute top-3 right-3 h-8 w-8 p-0 rounded-full opacity-70 hover:opacity-100 hover:bg-slate-200"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </Button>
           </DialogHeader>
           <div className="flex-1 min-h-0 overflow-hidden w-full">
             {selectedDate && (
@@ -628,11 +806,61 @@ export default function App() {
                 instructors={mockInstructors}
                 currentUser="You"
                 onDateChange={setSelectedDate}
+                onCellClick={handleMasterScheduleCellClick}
               />
             )}
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+
+      <EndTimeDialog
+        open={isEndTimeDialogOpen}
+        onOpenChange={setIsEndTimeDialogOpen}
+        onConfirm={handleEndTimeConfirm}
+        startTime={masterScheduleClickData?.startTime}
+        resourceType={masterScheduleClickData?.resourceType}
+        resourceName={masterScheduleClickData?.resourceName}
+      />
+
+      {/* Zoom Controls - Always on top, outside scaled container */}
+      {!isMasterScheduleOpen && (
+        <div 
+          className="fixed top-4 right-4 z-[9999] flex items-center gap-1.5 bg-white border rounded-lg shadow-lg p-1.5"
+        >
+          <Button
+            onClick={handleZoomOut}
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 hover:bg-slate-100"
+            title="Zoom Out"
+            disabled={zoomLevel <= 80}
+          >
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <div className="text-center text-xs py-1 px-2.5 bg-slate-50 rounded min-w-[50px]">
+            {zoomLevel}%
+          </div>
+          <Button
+            onClick={handleZoomIn}
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 hover:bg-slate-100"
+            title="Zoom In"
+            disabled={zoomLevel >= 200}
+          >
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={handleZoomReset}
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0 hover:bg-slate-100"
+            title="Reset Zoom"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </>
   );
 }
